@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+brawl_ai/checkpoints/
+brawl_ai/checkpoints_smoketest/
+*.zip
+.venv/

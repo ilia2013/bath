@@ -1,0 +1,9 @@
+gymnasium>=1.0
+numpy
+stable-baselines3>=2.0
+torch
+
+# only needed for real-device deployment (brawl_ai/real/*)
+opencv-python-headless
+mss
+pillow
