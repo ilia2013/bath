@@ -12,7 +12,7 @@
     instagram: "https://instagram.com/", // посилання на Instagram
     telegram: "https://t.me/",           // посилання на Telegram
     freeShippingFrom: 1500,              // безкоштовна доставка від, ₴
-    heroImage: "",                       // фото для головного банера, напр. "photos/banner.jpg". Поки порожньо — показується ілюстрація.
+    heroImage: "photos/banner.jpg",                      // фото для головного банера, напр. "photos/banner.jpg". Поки порожньо — показується ілюстрація.
     orderEndpoint: ""                    // URL, куди надсилати замовлення (CRM, бот, форма). Поки порожньо — замовлення нікуди не йде.
   };
 
