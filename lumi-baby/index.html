@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>Lumi Baby</title>
+<meta name="description" content="Lumi Baby — спокійний мінімалістичний одяг для дітей від 0 до 6 років. Доставка Новою поштою по всій Україні, оплата при отриманні.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,400;1,500&family=Montserrat:wght@300;400;500&display=swap">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="note"><div class="w">Безкоштовна доставка від 1500 ₴ · Оплата при отриманні · Обмін 14 днів</div></div>
+
+<header class="head" id="top">
+  <div class="w head-in">
+    <button class="burger" id="burger" aria-label="Меню" aria-expanded="false" aria-controls="menu"><span></span><span></span></button>
+    <nav class="nav nav-l" aria-label="Каталог">
+      <a href="#catalog" data-age="all">Каталог</a>
+      <a href="#catalog" data-age="baby">Немовлята</a>
+      <a href="#catalog" data-age="toddler">Малюки</a>
+      <a href="#catalog" data-age="kid">Дошкільнята</a>
+    </nav>
+    <a class="logo" href="#home" aria-label="Lumi Baby — на головну">Lumi Baby</a>
+    <nav class="nav nav-r" aria-label="Покупцям">
+      <a href="#sizes" class="hide-m">Розміри</a>
+      <a href="#delivery" class="hide-m">Доставка</a>
+      <button class="cart-btn" id="cart-open" aria-haspopup="dialog">Кошик <span class="cart-n" id="cart-n">0</span></button>
+    </nav>
+  </div>
+  <nav class="menu" id="menu" hidden aria-label="Мобільне меню">
+    <div class="w">
+      <a href="#catalog" data-age="all">Каталог</a>
+      <a href="#catalog" data-age="baby">Немовлята · 0–12 міс</a>
+      <a href="#catalog" data-age="toddler">Малюки · 1–3 роки</a>
+      <a href="#catalog" data-age="kid">Дошкільнята · 3–6 років</a>
+      <a href="#sizes">Таблиця розмірів</a>
+      <a href="#delivery">Доставка і оплата</a>
+      <a href="#returns">Обмін і повернення</a>
+      <a href="#contacts">Контакти</a>
+    </div>
+  </nav>
+</header>
+
+<main id="app"></main>
+
+<footer class="foot">
+  <div class="w foot-in">
+    <div class="foot-brand">
+      <span class="logo">Lumi Baby</span>
+      <p>Спокійний одяг для дітей від народження до шести років.</p>
+    </div>
+    <nav aria-label="Каталог у підвалі">
+      <h3>Каталог</h3>
+      <a href="#catalog" data-age="baby">Немовлята</a>
+      <a href="#catalog" data-age="toddler">Малюки</a>
+      <a href="#catalog" data-age="kid">Дошкільнята</a>
+      <a href="#catalog" data-age="all">Усі товари</a>
+    </nav>
+    <nav aria-label="Покупцям">
+      <h3>Покупцям</h3>
+      <a href="#delivery">Доставка і оплата</a>
+      <a href="#returns">Обмін і повернення</a>
+      <a href="#sizes">Таблиця розмірів</a>
+      <a href="#about">Про нас</a>
+    </nav>
+    <div class="foot-contacts">
+      <h3>Контакти</h3>
+      <span id="f-phone"></span>
+      <span id="f-email"></span>
+      <a id="f-insta" target="_blank" rel="noopener">Instagram</a>
+      <a id="f-tg" target="_blank" rel="noopener">Telegram</a>
+    </div>
+  </div>
+  <div class="w foot-bottom"><span>© 2026 Lumi Baby</span><span>Пн–Сб, 9:00–19:00</span></div>
+</footer>
+
+<div class="overlay" id="overlay" hidden></div>
+<aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-label="Кошик" hidden>
+  <div class="drawer-head"><h2>Кошик</h2><button class="x" id="cart-close" aria-label="Закрити кошик">Закрити</button></div>
+  <div class="drawer-body" id="cart-body"></div>
+  <div class="drawer-foot" id="cart-foot"></div>
+</aside>
+
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script src="app.js"></script>
+</body>
+</html>
