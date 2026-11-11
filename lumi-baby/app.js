@@ -21,8 +21,8 @@
     kid:     { t: "3–6 років",    n: "Дошкільнята", h: "зріст 104–122 см" }
   };
 
-  var TONES = { oat: "#D8CDB9", milk: "#F5F1E7", sage: "#B8BFAC", clay: "#C8A895", stone: "#B5B0A4", mist: "#BEC5C6" };
-  var TONE_NAMES = { oat: "вівсяний", milk: "молочний", sage: "шавлія", clay: "глиняний", stone: "камінь", mist: "туман" };
+  var TONES = { oat: "#FFC98A", milk: "#FFFFFF", sage: "#8FDDBB", clay: "#FF9A8B", stone: "#9CC4FA", mist: "#CDB8F4" };
+  var TONE_NAMES = { oat: "абрикосовий", milk: "молочний", sage: "м'ятний", clay: "кораловий", stone: "блакитний", mist: "бузковий" };
 
   var PRODUCTS = [
     { id: "body-lon", name: "Боді з довгим рукавом", art: "body", tone: "milk", price: 449, ages: ["baby"], sizes: [56, 62, 68, 74, 80], isNew: true,
@@ -80,7 +80,7 @@
     function g(kind, tone, x, y, s) {
       return '<g transform="translate(' + x + " " + y + ") scale(" + s + ')" fill="' + TONES[tone] + '">' + ART[kind] + "</g>";
     }
-    function peg(x, y) { return '<rect class="f" x="' + x + '" y="' + y + '" width="7" height="24" rx="2" fill="' + TONES.oat + '"/>'; }
+    function peg(x, y) { return '<rect class="f" x="' + x + '" y="' + y + '" width="7" height="24" rx="2" fill="#FFD466"/>'; }
     return '<svg class="art" viewBox="0 0 600 560" aria-hidden="true">' +
       '<path class="d" d="M-10 96Q300 168 610 96" style="opacity:.8"/>' +
       g("body", "milk", 34, 108, 0.86) + g("dress", "oat", 214, 128, 0.86) + g("pants", "sage", 398, 100, 0.86) +
@@ -118,7 +118,7 @@
   /* ---------- фрагменти ---------- */
   function card(p, i) {
     return '<a class="card" href="#p-' + p.id + '">' +
-      '<div class="panel' + (i % 2 ? " alt" : "") + '">' + (p.isNew ? '<span class="badge">Нове</span>' : "") + media(p) + '<span class="hint">Обрати розмір</span></div>' +
+      '<div class="panel">' + (p.isNew ? '<span class="badge">Нове</span>' : "") + media(p) + '<span class="hint">Обрати розмір</span></div>' +
       '<div class="card-info"><div><h3>' + esc(p.name) + '</h3><span class="sz">' + sizeRange(p) + '</span></div><span class="price">' + uah(p.price) + "</span></div></a>";
   }
   function crumbs(items) {
@@ -139,34 +139,33 @@
   /* ---------- сторінки ---------- */
   function home() {
     var news = PRODUCTS.filter(function (p) { return p.isNew; }).slice(0, 4);
-    var n = 0;
     return '<section class="hero"><div class="w hero-in">' +
       '<div class="hero-text"><span class="up muted">Одяг для дітей від 0 до 6 років</span>' +
       '<h1 class="display">Ніжні речі для <em>перших років</em> життя</h1>' +
-      '<p class="lead">М\'яка бавовна, муслін і льон у спокійних природних відтінках. Одяг, у якому зручно спати, гратися й рости.</p>' +
+      '<p class="lead">М\'яка бавовна, муслін і льон у ніжних радісних кольорах. Одяг, у якому зручно спати, гратися й рости.</p>' +
       '<div class="cta"><a class="btn" href="#catalog" data-age="all">Перейти до каталогу</a><a class="link" href="#sizes">Таблиця розмірів</a></div></div>' +
-      '<div class="hero-art"><div class="panel">' + heroArt() + '</div><div class="hero-cap up muted"><span>Колекція осінь–зима</span><span>2026</span></div></div>' +
+      '<div class="hero-art"><div class="panel">' + heroArt() + '</div></div>' +
       "</div></section>" +
 
-      '<section class="sec" style="padding-top:0"><div class="w"><div class="ages">' +
+      '<section class="sec" style="padding-bottom:0"><div class="w"><div class="ages">' +
       Object.keys(AGES).map(function (k) {
-        var a = AGES[k]; n++;
-        return '<a class="age" href="#catalog" data-age="' + k + '"><i class="up muted">0' + n + "</i><b>" + a.t + '</b><span class="h muted">' + a.n + " · " + a.h + '</span><span class="arr" aria-hidden="true">→</span></a>';
+        var a = AGES[k], pic = { baby: ["body", "milk"], toddler: ["romper", "clay"], kid: ["dress", "mist"] }[k];
+        return '<a class="age" href="#catalog" data-age="' + k + '"><b>' + a.t + '</b><span class="h">' + a.n + " · " + a.h + '</span><span class="arr" aria-hidden="true">→</span>' + art(pic[0], pic[1]) + "</a>";
       }).join("") + "</div></div></section>" +
 
-      '<section class="sec" style="padding-top:0"><div class="w"><div class="sec-h"><h2 class="h-sec">Новинки</h2><a class="link" href="#catalog" data-age="all">Усі товари</a></div>' +
+      '<section class="sec"><div class="w"><div class="sec-h"><h2 class="h-sec">Новинки</h2><a class="link" href="#catalog" data-age="all">Усі товари</a></div>' +
       '<div class="grid">' + news.map(card).join("") + "</div></div></section>" +
 
-      '<section class="sec line"><div class="w story"><h2 class="h-sec">Менше зайвого, <em>більше тепла</em></h2>' +
-      '<div class="story-text"><p>Lumi означає «світло». Ми збираємо невелику колекцію речей, які легко поєднуються між собою і не набридають за сезон.</p>' +
-      "<p>Обираємо натуральні тканини, приглушені кольори та прості силуети без написів і яскравих принтів. Речі мають пласкі шви та зовнішні бирки, щоб ніщо не терло ніжну шкіру.</p>" +
+      '<section class="sec line"><div class="w story"><h2 class="h-sec">Одяг, у якому <em>добре рости</em></h2>' +
+      '<div class="story-text"><p>Lumi означає «світло». Ми збираємо колекцію зручних речей, які легко поєднуються між собою і подобаються дітям.</p>' +
+      "<p>Обираємо натуральні тканини, приємні кольори та зручні силуети. Речі мають пласкі шви та зовнішні бирки, щоб ніщо не терло ніжну шкіру.</p>" +
       '<p><a class="link" href="#about">Більше про нас</a></p></div></div></section>' +
 
-      '<section class="sec" style="padding-top:0"><div class="w"><div class="perks">' +
-      '<div class="perk"><b class="up">Відправка за 1–3 дні</b><span>Новою поштою по всій Україні</span></div>' +
-      '<div class="perk"><b class="up">Оплата при отриманні</b><span>Або карткою онлайн</span></div>' +
-      '<div class="perk"><b class="up">Обмін і повернення</b><span>Протягом 14 днів</span></div>' +
-      '<div class="perk"><b class="up">М\'які тканини</b><span>Пласкі шви, бирки зовні</span></div>' +
+      '<section class="sec"><div class="w"><div class="perks">' +
+      '<div class="perk"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 6h11v10H2zM13 9h5l4 4v3h-9z"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/></svg></span><b>Відправка за 1–3 дні</b><span>Новою поштою по всій Україні</span></div>' +
+      '<div class="perk"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="3"/><path d="M3 10h18M15 15h3"/></svg></span><b>Оплата при отриманні</b><span>Або карткою онлайн</span></div>' +
+      '<div class="perk"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9a8 8 0 0 1 14-3l2 2M20 15a8 8 0 0 1-14 3l-2-2M20 4v4h-4M4 20v-4h4"/></svg></span><b>Обмін і повернення</b><span>Протягом 14 днів</span></div>' +
+      '<div class="perk"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg></span><b>М\'які тканини</b><span>Пласкі шви, бирки зовні</span></div>' +
       "</div></div></section>" +
 
       '<section class="sec line"><div class="w faq"><h2 class="h-sec">Часті <em>запитання</em></h2>' + faqHtml() + "</div></section>";
@@ -246,7 +245,7 @@
   var PAGES = {
     delivery: ["Доставка <em>і оплата</em>", '<section><h2>Доставка</h2><ul><li>Відправляємо Новою поштою на відділення або в поштомат по всій Україні.</li><li>Замовлення передаємо перевізнику протягом 1–3 робочих днів після підтвердження.</li><li>Доставка безкоштовна для замовлень від ' + CONFIG.freeShippingFrom + ' ₴. Для менших сум вартість розраховується за тарифами Нової пошти.</li><li>Номер накладної надсилаємо в SMS або месенджер.</li></ul></section><section><h2>Оплата</h2><ul><li>Під час отримання на відділенні, після огляду посилки.</li><li>Карткою онлайн: менеджер надішле реквізити після підтвердження замовлення.</li></ul></section>'],
     returns: ["Обмін <em>і повернення</em>", "<section><h2>Умови</h2><p>Обміняти або повернути річ можна протягом 14 днів від дня отримання.</p><ul><li>Річ не була у використанні та не прана.</li><li>Збережено бирки й упаковку.</li></ul></section><section><h2>Як оформити</h2><ul><li>Напишіть нам у месенджер або зателефонуйте й назвіть номер замовлення.</li><li>Надішліть річ Новою поштою на адресу, яку повідомить менеджер.</li><li>Після отримання посилки ми відправимо інший розмір або повернемо кошти.</li></ul></section>"],
-    about: ["Про <em>Lumi Baby</em>", "<section><p>Lumi Baby — невеликий український онлайн-магазин одягу для дітей від народження до шести років.</p><p>Ми добираємо речі з натуральних тканин у спокійних природних відтінках. Жодних написів і кричущих принтів: лише прості силуети, які легко поєднуються між собою та переходять від старшої дитини до молодшої.</p></section><section><h2>На що ми зважаємо</h2><ul><li>Тканина: бавовна, муслін, льон, м'яка в'язка.</li><li>Деталі: пласкі шви, зовнішні бирки, зручні кнопки.</li><li>Розміри: за зростом дитини, із запасом на ріст.</li></ul></section>"]
+    about: ["Про <em>Lumi Baby</em>", "<section><p>Lumi Baby — невеликий український онлайн-магазин одягу для дітей від народження до шести років.</p><p>Ми добираємо речі з натуральних тканин у ніжних радісних кольорах. Зручні силуети легко поєднуються між собою та переходять від старшої дитини до молодшої.</p></section><section><h2>На що ми зважаємо</h2><ul><li>Тканина: бавовна, муслін, льон, м'яка в'язка.</li><li>Деталі: пласкі шви, зовнішні бирки, зручні кнопки.</li><li>Розміри: за зростом дитини, із запасом на ріст.</li></ul></section>"]
   };
   function textPage(key) {
     var p = PAGES[key];
