@@ -225,13 +225,13 @@
     return '<div class="w page">' + crumbs([["Оформлення замовлення"]]) +
       '<div class="page-top"><h1 class="page-h">Оформлення <em>замовлення</em></h1></div><div class="co">' +
       '<form class="form" id="order" novalidate>' +
-      '<fieldset class="fs"><legend class="up">Контактні дані</legend>' + fld("c-name", "Ім'я", 'autocomplete="given-name" required') + fld("c-last", "Прізвище", 'autocomplete="family-name" required') +
-      fld("c-phone", "Телефон", 'type="tel" inputmode="tel" autocomplete="tel" placeholder="+380" required', true) + "</fieldset>" +
-      '<fieldset class="fs"><legend class="up">Доставка Новою поштою</legend>' + fld("c-city", "Місто або село", 'autocomplete="address-level2" required') + fld("c-np", "Номер відділення або поштомата", "required") + "</fieldset>" +
-      '<fieldset class="fs"><legend class="up">Оплата</legend><div class="radios">' +
-      '<label class="radio" for="pay-cod"><input type="radio" name="pay" id="pay-cod" value="Оплата при отриманні" checked><span>Оплата при отриманні<small>Оплачуєте на відділенні після огляду посилки</small></span></label>' +
-      '<label class="radio" for="pay-card"><input type="radio" name="pay" id="pay-card" value="Карткою онлайн"><span>Карткою онлайн<small>Менеджер надішле реквізити після підтвердження</small></span></label></div></fieldset>' +
-      '<fieldset class="fs"><legend class="up">Коментар</legend><div class="fld full"><label for="c-note">Побажання до замовлення (необов\'язково)</label><textarea id="c-note" name="c-note" rows="2"></textarea></div></fieldset>' +
+      '<fieldset class="fs"><legend class="up">Контактні дані</legend><div class="fs-g">' + fld("c-name", "Ім'я", 'autocomplete="given-name" required') + fld("c-last", "Прізвище", 'autocomplete="family-name" required') +
+      fld("c-phone", "Телефон", 'type="tel" inputmode="tel" autocomplete="tel" placeholder="+380" required', true) + "</div></fieldset>" +
+      '<fieldset class="fs"><legend class="up">Доставка Новою поштою</legend><div class="fs-g">' + fld("c-city", "Місто або село", 'autocomplete="address-level2" required') + fld("c-np", "Номер відділення або поштомата", "required") + "</div></fieldset>" +
+      '<fieldset class="fs"><legend class="up">Оплата</legend><div class="fs-g"><div class="radios">' +
+      '<label class="radio on" for="pay-cod"><input type="radio" name="pay" id="pay-cod" value="Оплата при отриманні" checked><span>Оплата при отриманні<small>Оплачуєте на відділенні після огляду посилки</small></span></label>' +
+      '<label class="radio" for="pay-card"><input type="radio" name="pay" id="pay-card" value="Карткою онлайн"><span>Карткою онлайн<small>Менеджер надішле реквізити після підтвердження</small></span></label></div></div></fieldset>' +
+      '<fieldset class="fs"><legend class="up">Коментар</legend><div class="fs-g"><div class="fld full"><label for="c-note">Побажання до замовлення (необов\'язково)</label><textarea id="c-note" name="c-note" rows="2"></textarea></div></div></fieldset>' +
       '<div><button class="btn wide" type="submit" id="order-btn">Підтвердити замовлення</button><p class="err" id="order-err" role="alert" style="margin-top:12px"></p></div>' +
       "</form>" + sumHtml() + "</div></div>";
   }
@@ -311,8 +311,8 @@
       '<div class="total"><span>Разом</span><span class="price">' + uah(sum) + "</span></div>" +
       '<a class="btn wide" href="#checkout" data-close>Оформити замовлення</a>';
   }
-  function openCart() { $("#drawer").hidden = false; $("#overlay").hidden = false; $("#cart-close").focus(); }
-  function closeCart() { $("#drawer").hidden = true; $("#overlay").hidden = true; }
+  function openCart() { document.documentElement.style.overflow = "hidden"; $("#drawer").hidden = false; $("#overlay").hidden = false; $("#cart-close").focus(); }
+  function closeCart() { document.documentElement.style.overflow = ""; $("#drawer").hidden = true; $("#overlay").hidden = true; }
   function closeMenu() { $("#menu").hidden = true; $("#burger").setAttribute("aria-expanded", "false"); }
   function cartChanged() {
     saveCart(); renderCart();
@@ -373,7 +373,10 @@
     else if (d.cq) { var it = cart[Number(d.i)]; it.qty += Number(d.cq); if (it.qty < 1) cart.splice(Number(d.i), 1); cartChanged(); }
     else if (d.rm) { cart.splice(Number(d.rm), 1); cartChanged(); }
   });
-  document.addEventListener("change", function (e) { if (e.target.id === "sort") { state.sort = e.target.value; route(); } });
+  document.addEventListener("change", function (e) {
+    if (e.target.id === "sort") { state.sort = e.target.value; route(); }
+    if (e.target.name === "pay") document.querySelectorAll(".radio").forEach(function (l) { l.classList.toggle("on", l.contains(e.target)); });
+  });
   document.addEventListener("submit", function (e) { if (e.target.id === "order") { e.preventDefault(); submitOrder(e.target); } });
   document.addEventListener("keydown", function (e) { if (e.key === "Escape") { closeCart(); closeMenu(); } });
   $("#cart-open").addEventListener("click", openCart);
