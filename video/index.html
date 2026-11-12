@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ночь без света — предпросмотр</title>
+<style>
+  @font-face { font-family: "Montserrat"; font-weight: 800; src: url(fonts/montserrat-cyrillic-800-normal.woff2) format("woff2"); unicode-range: U+0400-04FF, U+2116; }
+  @font-face { font-family: "Montserrat"; font-weight: 800; src: url(fonts/montserrat-latin-800-normal.woff2) format("woff2"); }
+  @font-face { font-family: "Montserrat"; font-weight: 900; src: url(fonts/montserrat-cyrillic-900-normal.woff2) format("woff2"); unicode-range: U+0400-04FF, U+2116; }
+  @font-face { font-family: "Montserrat"; font-weight: 900; src: url(fonts/montserrat-latin-900-normal.woff2) format("woff2"); }
+  @font-face { font-family: "Russo One"; font-weight: 400; src: url(fonts/russo-one-cyrillic-400-normal.woff2) format("woff2"); unicode-range: U+0400-04FF, U+2116; }
+  @font-face { font-family: "Russo One"; font-weight: 400; src: url(fonts/russo-one-latin-400-normal.woff2) format("woff2"); }
+  html, body { margin: 0; background: #0b0b14; color: #fff; font-family: system-ui, sans-serif; }
+  body.render { overflow: hidden; }
+  body.render #ui { display: none; }
+  body.render canvas { width: 1080px; height: 1920px; display: block; }
+  body:not(.render) { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 12px; }
+  body:not(.render) canvas { height: calc(100vh - 90px); max-width: 100%; border-radius: 14px; }
+  #ui { display: flex; gap: 10px; align-items: center; width: min(520px, 100%); }
+  #ui input { flex: 1; }
+  button { font: inherit; padding: 6px 14px; border-radius: 8px; border: 0; background: #ffd84a; cursor: pointer; }
+</style>
+</head>
+<body>
+<canvas id="c" width="1080" height="1920"></canvas>
+<div id="ui"><button id="play">▶</button><input id="seek" type="range" min="0" max="1" step="0.001" value="0"><span id="tc">0.0</span></div>
+<script src="film.js"></script>
+<script>
+  const isRender = new URLSearchParams(location.search).has('render');
+  if (isRender) document.body.classList.add('render');
+  window.READY = Promise.all([
+    document.fonts.load('900 80px "Montserrat"', 'Привет Hi'), document.fonts.load('800 80px "Montserrat"', 'Привет Hi'),
+    document.fonts.load('400 80px "Russo One"', 'Привет Hi 123'),
+  ]).then(() => { FILM.renderFrame(0); return true; });
+  if (!isRender) {
+    const seek = document.getElementById('seek'), tc = document.getElementById('tc'), btn = document.getElementById('play');
+    let playing = false, T = 0, last = 0;
+    const show = () => { FILM.renderFrame(T); seek.value = T / FILM.DUR; tc.textContent = T.toFixed(1) + ' с'; };
+    seek.oninput = () => { T = seek.value * FILM.DUR; show(); };
+    btn.onclick = () => { playing = !playing; btn.textContent = playing ? '❚❚' : '▶'; last = performance.now(); if (playing) requestAnimationFrame(tick); };
+    function tick(now) { if (!playing) return; T += (now - last) / 1000; last = now; if (T >= FILM.DUR) T = 0; show(); requestAnimationFrame(tick); }
+  }
+</script>
+</body>
+</html>
