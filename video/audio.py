@@ -202,13 +202,43 @@ add(boom(2.8, 42), t_fin, 1.0); add(sting(2.2, 207), t_fin, 0.3); add(bandf(nois
 dd = DUR - t_fin; add(fade(np.sin(2 * np.pi * 55 * tt(dd)) + 0.6 * np.sin(2 * np.pi * 58.3 * tt(dd)), 0.4, 1.2), t_fin, 0.08)
 for i, sm in enumerate([12, 13]): add(bell(note(36 + sm), 1.4), t_fin + 1.0 + i * 0.3, 0.06)
 
+# ---------- озвучка ----------
+def load_voice(lid):
+    with wave.open(os.path.join(HERE, 'voice', lid + '.wav')) as w:
+        sr = w.getframerate(); a = np.frombuffer(w.readframes(w.getnframes()), '<i2') / 32767
+    n = int(len(a) * SR / sr)
+    a = np.interp(np.arange(n) * sr / SR, np.arange(len(a)), a)
+    return bandf(a, 60, sr * 0.47)
+def reverb(a, d=0.35, wet=0.3):
+    ir = rng.standard_normal(int(SR * d)) * np.exp(-tt(d) * 14); ir /= np.sqrt(np.sum(ir ** 2))
+    return np.concatenate([a, np.zeros(len(ir) - 1)]) + wet * np.convolve(a, ir)
+def fx(lid, a):
+    if lid == 'door_n': return reverb(bandf(a, 140, 2300) * 1.3, 0.25, 0.22)           # голос из-за двери
+    if lid.startswith('msg'): return np.tanh(bandf(a, 380, 3000) * 2.2) * 0.75           # «из телефона»
+    if lid == 'rule4': return reverb(a, 0.6, 0.22)
+    return a
+vo = np.zeros(N)
+for cue in info.get('VO', []):
+    path = os.path.join(HERE, 'voice', cue['id'] + '.wav')
+    if not os.path.exists(path): continue
+    a = fade(fx(cue['id'], load_voice(cue['id'])), 0.005, 0.02)
+    i0 = int(cue['t'] * SR); a = a[:N - i0]; vo[i0:i0 + len(a)] += a
+
 # ---------- сведение ----------
-st = np.stack([mixL, mixR], 1)[:int(SR * DUR)]
-st = np.tanh(st * 1.6) / np.tanh(1.6)
-st *= 0.92 / np.max(np.abs(st))
+bed = np.stack([mixL, mixR], 1)
+bed = np.tanh(bed * 1.6) / np.tanh(1.6) * 0.5
+k = int(0.12 * SR); env = np.convolve(np.abs(vo), np.ones(k) / k, 'same')
+env = np.clip(env / 0.06, 0, 1); k2 = int(0.25 * SR); env = np.convolve(env, np.ones(k2) / k2, 'same')
+bed *= (1 - 0.72 * env)[:, None]                       # музыка и шумы приглушаются под голосом
+st = (bed + vo[:, None] * 0.95)[:int(SR * DUR)]
+st = np.tanh(st * 1.15) / np.tanh(1.15)
+st *= 0.94 / np.max(np.abs(st))
 n_out = int(0.4 * SR); st[-n_out:] *= np.linspace(1, 0, n_out)[:, None]
 out = os.path.join(HERE, 'out', 'audio.wav')
 with wave.open(out, 'wb') as w:
     w.setnchannels(2); w.setsampwidth(2); w.setframerate(SR)
     w.writeframes((st * 32767).astype('<i2').tobytes())
+with wave.open(os.path.join(HERE, 'out', 'voice_only.wav'), 'wb') as w:
+    w.setnchannels(1); w.setsampwidth(2); w.setframerate(SR)
+    w.writeframes((np.clip(vo[:int(SR * DUR)], -1, 1) * 32767).astype('<i2').tobytes())
 print('audio:', out, f'{DUR:.2f}s', 'rms', float(np.sqrt(np.mean(st ** 2))))

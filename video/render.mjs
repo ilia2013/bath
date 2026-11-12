@@ -21,7 +21,7 @@ const page = await browser.newPage({ viewport: { width: 1080, height: 1920 }, de
 page.on('pageerror', e => { console.error('PAGE ERROR:', e.message); });
 await page.goto(pathToFileURL(path.join(here, 'index.html')).href + '?render=1');
 await page.evaluate(() => window.READY);
-const info = await page.evaluate(() => ({ DUR: FILM.DUR, FPS: FILM.FPS, EVENTS: FILM.EVENTS, SCENES: FILM.SCENES }));
+const info = await page.evaluate(() => ({ DUR: FILM.DUR, FPS: FILM.FPS, EVENTS: FILM.EVENTS, SCENES: FILM.SCENES, VO: FILM.VO }));
 writeFileSync(path.join(out, 'events.json'), JSON.stringify(info, null, 1));
 const grab = (t, type = 'image/jpeg', q = 0.95) => page.evaluate(([t, type, q]) => { FILM.renderFrame(t); return document.getElementById('c').toDataURL(type, q).split(',')[1]; }, [t, type, q]);
 

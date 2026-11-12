@@ -278,7 +278,7 @@ function drawCity(p, litFn, t) {     // p: 0 ночь … 1 рассвет
   });
 }
 function sCity(t, d) {
-  const off = 2.45;
+  const off = 2.95;
   c.save(); cam(lerp(1.0, 1.1, eIO(t / d)), 540, lerp(960, 1040, t / d), ...shake(t, off, 14, .5));
   drawCity(0, w => {
     const tt = off + w.x / W * .55 + rnd(w.id * 7.7) * .3;
@@ -328,7 +328,7 @@ function roomBG(day, o = {}) {
   }
 }
 function sRoom(t, d) {
-  const k1 = 3.55, k2 = 4.0, k3 = 4.45;
+  const k1 = 4.2, k2 = 4.65, k3 = 5.1;
   const sh = addv(shake(t, k1, 16), shake(t, k2, 16), shake(t, k3, 22));
   c.save(); cam(lerp(1.04, 1.12, eIO(t / d)), 540, 1000, ...sh);
   roomBG(false);
@@ -373,10 +373,10 @@ function burstBG(t, c1, c2, rays = 'rgba(255,255,255,.05)') {
 }
 function pop(t, t0, dur = .3) { const p = seg(t, t0, t0 + dur); return p <= 0 ? 0 : eBack(p); }
 function sTitle(t, d) {
-  c.save(); cam(1.02 + .03 * t / d, 540, 960, ...addv(shake(t, .05, 20), shake(t, 1.0, 10)));
+  c.save(); cam(1.02 + .03 * t / d, 540, 960, ...addv(shake(t, .05, 20), shake(t, 1.5, 10)));
   burstBG(t, '#2b1c6b', '#07051a');
   // лампочка
-  const on = t < 1.0 ? (rnd(Math.floor(t * 24)) > .25 || t < .5) : false;
+  const on = t < 1.5 ? (rnd(Math.floor(t * 24)) > .25 || t < .9) : false;
   c.save(); c.translate(540, 470); const bs = pop(t, 0, .35); c.scale(bs, bs); c.rotate(Math.sin(t * 2) * .06);
   if (on) { const gg = c.createRadialGradient(0, 0, 60, 0, 0, 380); gg.addColorStop(0, 'rgba(255,220,90,.55)'); gg.addColorStop(1, 'rgba(255,220,90,0)'); c.fillStyle = gg; ell(0, 0, 380, 380); c.fill(); }
   ink(12); c.fillStyle = on ? YEL : '#3a3f6b'; ell(0, -20, 150, 150); c.fill(); c.stroke();
@@ -384,7 +384,7 @@ function sTitle(t, d) {
   c.strokeStyle = on ? '#fff3a8' : '#5a6090'; c.lineWidth = 10; c.beginPath(); c.moveTo(-50, 40); c.lineTo(-25, -40); c.lineTo(0, 20); c.lineTo(25, -40); c.lineTo(50, 40); c.stroke();
   if (!on) { c.strokeStyle = RED; c.lineWidth = 26; c.lineCap = 'round'; line(-170, -190, 170, 150); }
   c.restore();
-  const l1 = pop(t, .15), l2 = pop(t, .35), l3 = pop(t, .6), l4 = pop(t, 1.35);
+  const l1 = pop(t, .15), l2 = pop(t, .35), l3 = pop(t, .6), l4 = pop(t, 2.0);
   c.save(); c.translate(540, 830); c.scale(l1, l1); label('КАК ПЕРЕЖИТЬ', 0, 0, { size: 124, maxW: 940, stroke: INK, sw: 26 }); c.restore();
   c.save(); c.translate(540, 1030); c.scale(l2, l2); c.rotate(-.03); label('НОЧЬ', 0, 0, { size: 300, fill: YEL, stroke: INK, sw: 34 }); c.restore();
   c.save(); c.translate(540, 1230); c.scale(l3, l3); label('БЕЗ СВЕТА', 0, 0, { size: 168, maxW: 940, fill: '#fff', stroke: INK, sw: 28 }); c.restore();
@@ -403,7 +403,7 @@ function ruleCard(t, d, n, lines) {
   label(String(n), 0, 150, { size: 560, fill: YEL, stroke: INK, sw: 40 });
   c.restore();
   lines.forEach((ln, i) => {
-    const p = pop(t, .22 + i * .12, .25);
+    const p = pop(t, 1.0 + i * .16, .25);
     c.save(); c.translate(540, 1210 + i * 190); c.scale(p, p); c.rotate(i ? .02 : -.02);
     label(ln, 0, 0, { size: 170, maxW: 960, stroke: INK, sw: 30 }); c.restore();
   });
@@ -447,7 +447,7 @@ function sDoor(t, d) {
     label('ТУК', 0, 0, { size: 110, fill: '#fff', stroke: INK, sw: 22 }); c.restore();
   });
   // голос из-за двери
-  const b = pop(t, 1.2, .3);
+  const b = pop(t, 2.1, .3);
   if (b > 0) {
     c.save(); c.translate(540, 900); c.scale(b, b); c.rotate(Math.sin(t * 5) * .012);
     c.fillStyle = '#fff'; ink(11);
@@ -465,8 +465,8 @@ function sDoor(t, d) {
 
 /* ---------- глазок ---------- */
 function sPeep(t, d) {
-  const st = t < 1.55 ? 0 : (t < 2.6 ? 1 : 2);
-  const sh = addv(shake(t, 1.55, 18), shake(t, 2.6, 34, .5));
+  const st = t < 1.55 ? 0 : (t < 3.0 ? 1 : 2);
+  const sh = addv(shake(t, 1.55, 18), shake(t, 3.0, 34, .5));
   c.fillStyle = '#000'; c.fillRect(0, 0, W, H);
   const cx = 540, cy = 800, R = 440;
   c.save(); c.translate(sh[0], sh[1]);
@@ -726,7 +726,7 @@ function chat(t, msgs, typing, zoom, dark) {
   if (dark > 0) { const vg = c.createRadialGradient(540, zoom.y, 300, 540, zoom.y, 1200); vg.addColorStop(0, 'rgba(5,5,20,0)'); vg.addColorStop(1, `rgba(5,5,20,${dark})`); c.fillStyle = vg; c.fillRect(-200, -200, W + 400, H + 400); }
   c.restore();
 }
-const M1 = [{ t: .35, text: 'Здорово! Я вчера вечером вернулся' }, { t: 1.6, text: 'Свет вырубили, стучал к тебе за свечкой' }, { t: 2.9, text: 'Ты чего не открыл??' }];
+const M1 = [{ t: .35, text: 'Здорово! Я вчера вечером вернулся' }, { t: 3.5, text: 'Свет вырубили, стучал к тебе за свечкой' }, { t: 6.1, text: 'Ты чего не открыл??' }];
 function sChat1(t, d) { chat(t, M1, null, { z: lerp(1.0, 1.06, eIO(t / d)), x: 540, y: lerp(960, 900, t / d) }, 0); }
 const M2 = [...M1.map(m => ({ ...m, t: -9 })), { t: .15, me: true, text: 'Ахах, а я думал — монстр' }, { t: 1.5, hot: true, text: 'Кстати… а кто стоял у тебя за спиной, когда ты светил в окно?' }];
 function sChat2(t, d) {
@@ -741,6 +741,7 @@ function sLaugh(t, d) {
   c.restore();
 }
 
+let EGG_LABEL = '0:30';
 /* ---------- финал ---------- */
 function sFreeze(t, d) {
   const fl = t < .55 ? 1 : (t < 1.05 ? (rnd(Math.floor(t * 30) * 1.7) > .45 ? 1 : .12) : 0);
@@ -760,16 +761,16 @@ function sFreeze(t, d) {
 function sEnd(t, d) {
   c.fillStyle = '#04040c'; c.fillRect(0, 0, W, H);
   c.save(); cam(1 + .03 * t / d, 540, 960, ...shake(t, .2, 26, .45));
-  const bl = (t > 1.7 && t < 1.82) ? 0 : 1;
+  const bl = (t > 4.0 && t < 4.12) ? 0 : 1;
   shadeFace(540, 520, 3.2, 0, seg(t, 0, .2) * bl, 1);
   const s1 = seg(t, .2, .32), sc = lerp(2.4, 1, eOut(s1));
   c.save(); c.translate(540, 900); c.scale(sc, sc); c.globalAlpha = s1;
   label('ПРАВИЛО 4', 0, -110, { size: 130, fill: RED });
   label('НЕ ОБОРАЧИВАЙСЯ', 0, 70, { size: 150, maxW: 980 });
   c.restore();
-  const a2 = seg(t, 1.15, 1.5);
+  const a2 = seg(t, 3.15, 3.5);
   c.globalAlpha = a2;
-  label('Пересмотри 0:30.', 540, 1250 + (1 - a2) * 30, { size: 66, fam: 'Montserrat', weight: 900, fill: YEL });
+  label(`Пересмотри ${EGG_LABEL}.`, 540, 1250 + (1 - a2) * 30, { size: 66, fam: 'Montserrat', weight: 900, fill: YEL });
   label('Он там уже стоял.', 540, 1345 + (1 - a2) * 30, { size: 66, fam: 'Montserrat', weight: 900, fill: '#fff' });
   c.globalAlpha = 1;
   c.restore();
@@ -778,41 +779,54 @@ function sEnd(t, d) {
 /* ============================================================
    ТАЙМЛАЙН
    ============================================================ */
+const VD = window.VOICE_DUR || {};       // длительности реплик озвучки (voice/durations.js)
+// cues: [id реплики, старт внутри сцены (сек), текст субтитра или null]
 const SC = [
-  { n: 'city', d: 4.6, f: sCity, caps: [[.15, 2.3, '23:47. Обычный вечер.'], [2.45, 4.6, 'И вдруг во всём городе гаснет свет.']] },
-  { n: 'room', d: 5.2, f: sRoom, caps: [[.1, 2.3, 'Сеть пропала. Интернета нет.'], [2.45, 5.2, 'А ровно через минуту… в твою дверь стучат.']] },
-  { n: 'title', d: 2.8, f: sTitle, caps: [] },
-  { n: 'card1', d: 1.1, f: (t, d) => ruleCard(t, d, 1, ['НЕ ОТКРЫВАЙ', 'ДВЕРЬ']), caps: [] },
-  { n: 'door', d: 4.2, f: sDoor, caps: [[.1, 1.25, 'За дверью — голос.'], [2.0, 4.2, 'Точь-в-точь как у соседа.']] },
-  { n: 'peep', d: 3.8, f: sPeep, caps: [[.1, 1.5, 'Вот только сосед…'], [1.6, 3.8, '…уехал неделю назад.']], capY: 1500 },
-  { n: 'card2', d: 1.1, f: (t, d) => ruleCard(t, d, 2, ['НЕ СВЕТИ', 'В ОКНО']), caps: [] },
-  { n: 'win', d: 8.2, f: sWin, caps: [[.1, 2.6, 'В доме напротив — ни огонька.'], [3.0, 5.6, 'Но стоит включить фонарик…'], [5.95, 8.2, '…и все они смотрят на тебя.']] },
-  { n: 'card3', d: 1.1, f: (t, d) => ruleCard(t, d, 3, ['НИ ЗВУКА', 'ДО УТРА']), caps: [] },
-  { n: 'hide', d: 6.5, f: sHide, caps: [[.1, 2.1, 'Они не видят в темноте.'], [2.2, 3.8, 'Они слушают.'], [3.9, 6.5, 'Просто сиди. И жди рассвета.']], capY: 1500 },
-  { n: 'dawn', d: 2.3, f: sDawn, caps: [[.15, 2.3, '06:00. Свет вернулся.']] },
-  { n: 'relief', d: 2.4, f: sRelief, caps: [[.1, 1.45, 'Ты выжил.'], [1.55, 2.4, 'Наверное.']] },
-  { n: 'chat1', d: 4.4, f: sChat1, caps: [] },
-  { n: 'laugh', d: 1.8, f: sLaugh, caps: [[.1, 1.8, 'Так это и правда был сосед!']] },
-  { n: 'chat2', d: 4.4, f: sChat2, caps: [] },
-  { n: 'freeze', d: 2.8, f: sFreeze, caps: [] },
-  { n: 'end', d: 2.9, f: sEnd, caps: [] },
+  { n: 'city', d: 5.2, f: sCity, cues: [['city1', .25, '23:47. Обычный вечер.'], ['city2', 3.0, 'И вдруг во всём городе гаснет свет.']] },
+  { n: 'room', d: 5.9, f: sRoom, cues: [['room1', .2, 'Сеть пропала. Интернета нет.'], ['room2', 2.5, 'А ровно через минуту… в твою дверь стучат.']] },
+  { n: 'title', d: 3.6, f: sTitle, cues: [['title', .4, null]] },
+  { n: 'card1', d: 2.5, f: (t, d) => ruleCard(t, d, 1, ['НЕ ОТКРЫВАЙ', 'ДВЕРЬ']), cues: [['rule1', .15, null]] },
+  { n: 'door', d: 6.9, f: sDoor, cues: [['door1', .8, 'За дверью — голос.'], ['door_n', 2.1, null], ['door2', 5.25, 'Точь-в-точь как у соседа.']] },
+  { n: 'peep', d: 4.0, f: sPeep, cues: [['peep1', .2, 'Вот только сосед…'], ['peep2', 1.7, '…уехал неделю назад.']], capY: 1500 },
+  { n: 'card2', d: 2.5, f: (t, d) => ruleCard(t, d, 2, ['НЕ СВЕТИ', 'В ОКНО']), cues: [['rule2', .15, null]] },
+  { n: 'win', d: 8.2, f: sWin, cues: [['win1', .3, 'В доме напротив — ни одного огня.'], ['win2', 3.0, 'Но стоит включить фонарик…'], ['win3', 5.9, '…и все они смотрят на тебя.']] },
+  { n: 'card3', d: 2.5, f: (t, d) => ruleCard(t, d, 3, ['НИ ЗВУКА', 'ДО УТРА']), cues: [['rule3', .15, null]] },
+  { n: 'hide', d: 6.5, f: sHide, cues: [['hide1', .3, 'Они не видят в темноте.'], ['hide2', 2.3, 'Они слушают.'], ['hide3', 4.0, 'Просто сиди. И жди рассвета.']], capY: 1500 },
+  { n: 'dawn', d: 2.5, f: sDawn, cues: [['dawn', .3, '06:00. Свет вернулся.']] },
+  { n: 'relief', d: 2.7, f: sRelief, cues: [['relief1', .2, 'Ты пережил эту ночь.'], ['relief2', 1.75, 'Наверное.']] },
+  { n: 'chat1', d: 7.6, f: sChat1, cues: [['msg1', .45, null], ['msg2', 3.6, null], ['msg3', 6.2, null]] },
+  { n: 'laugh', d: 2.0, f: sLaugh, cues: [['laugh', .2, 'Так это и правда был сосед!']] },
+  { n: 'chat2', d: 6.2, f: sChat2, cues: [['msg4', 1.6, null]] },
+  { n: 'freeze', d: 2.8, f: sFreeze, cues: [] },
+  { n: 'end', d: 4.8, f: sEnd, cues: [['rule4', .5, null]] },
 ];
-let acc = 0; for (const s of SC) { s.t0 = acc; acc += s.d; }
+let acc = 0;
+for (const s of SC) {
+  s.t0 = acc; acc += s.d;
+  s.caps = s.cues.map(([id, a, text], i) => {
+    const vd = VD[id] || ((text || '').length * .07 + .5), t0 = s.t0 + a;
+    const lim = i + 1 < s.cues.length ? s.t0 + s.cues[i + 1][1] : s.t0 + s.d;
+    return { id, text, t0, vd, t1: Math.min(t0 + vd + .3, lim) };
+  });
+}
 const DUR = acc;
 const at = (n, dt = 0) => +(SC.find(s => s.n === n).t0 + dt).toFixed(3);
+const tEgg = at('win', 7.3);
+EGG_LABEL = `${Math.floor(tEgg / 60)}:${String(Math.floor(tEgg % 60)).padStart(2, '0')}`;
+const VO = SC.flatMap(s => s.caps.map(cp => ({ id: cp.id, t: +cp.t0.toFixed(3), d: cp.vd, scene: s.n, sceneEnd: +(s.t0 + s.d).toFixed(3) })));
 
 /* события для звуковой дорожки */
 const EVENTS = [
-  ['lights_out', at('city', 2.45)], ['knock', at('room', 3.55)], ['knock', at('room', 4.0)], ['knock_big', at('room', 4.45)],
-  ['title', at('title', .05)], ['bulb', at('title', 1.0)],
-  ['rule', at('card1')], ['knock', at('door', .2)], ['knock', at('door', .55)], ['whisper', at('door', 1.2)],
-  ['creep', at('peep', 0)], ['jump', at('peep', 1.55)], ['jump_big', at('peep', 2.6)],
+  ['lights_out', at('city', 2.95)], ['knock', at('room', 4.2)], ['knock', at('room', 4.65)], ['knock_big', at('room', 5.1)],
+  ['title', at('title', .05)], ['bulb', at('title', 1.5)],
+  ['rule', at('card1')], ['knock', at('door', .2)], ['knock', at('door', .55)],
+  ['creep', at('peep', 0)], ['jump', at('peep', 1.55)], ['jump_big', at('peep', 3.0)],
   ['rule', at('card2')], ['click', at('win', 3.0)],
   ...WIN.ws.filter(w => w.seen < 90).map(w => ['eye', at('win', w.seen)]),
   ['jump_big', at('win', 5.95)], ['click', at('win', 6.75)], ['egg', at('win', 6.5)],
   ['rule', at('card3')], ['hide_start', at('hide', 0)], ['hide_end', at('hide', 6.5)],
   ['dawn', at('dawn', 0)], ['puff', at('relief', .15)], ['ding', at('relief', 1.55)],
-  ['msg', at('chat1', .35)], ['msg', at('chat1', 1.6)], ['msg', at('chat1', 2.9)], ['laugh', at('laugh', 0)],
+  ['msg', at('chat1', .35)], ['msg', at('chat1', 3.5)], ['msg', at('chat1', 6.1)], ['laugh', at('laugh', 0)],
   ['sent', at('chat2', .15)], ['typing', at('chat2', .7)], ['msg_bad', at('chat2', 1.5)], ['riser', at('chat2', 1.9)],
   ['freeze', at('freeze', 0)], ['flicker', at('freeze', .55)], ['lights_out2', at('freeze', 1.05)], ['final', at('end', .2)], ['end', DUR],
 ].map(([name, t]) => ({ name, t }));
@@ -824,7 +838,7 @@ function drawCaption(cap, T, y0) {
   const words = cap.text.split(' '), sp = c.measureText(' ').width, maxW = 940;
   const lines = [[]]; let lw = 0;
   words.forEach((w, i) => { const ww = c.measureText(w).width; if (lw + ww > maxW && lines[lines.length - 1].length) { lines.push([]); lw = 0; } lines[lines.length - 1].push({ w, ww, i }); lw += ww + sp; });
-  const wt = words.map(w => w.length + 3), tot = wt.reduce((a, b) => a + b, 0), span = (cap.t1 - cap.t0) * .86;
+  const wt = words.map(w => w.length + 3), tot = wt.reduce((a, b) => a + b, 0), span = cap.vd;
   let a = 0; const st = wt.map(v => { const s = cap.t0 + a / tot * span; a += v; return s; });
   let cur = 0; st.forEach((s, i) => { if (T >= s) cur = i; });
   const p = .78 + .22 * eBack(seg(T, cap.t0, cap.t0 + .16));
@@ -868,7 +882,7 @@ function renderFrame(T) {
   c.save(); c.translate(W / 2, H / 2); c.scale(pz, pz); c.translate(-W / 2, -H / 2);
   s.f(t, s.d);
   c.restore();
-  for (const cp of s.caps) if (t >= cp[0] && t < cp[1]) drawCaption({ t0: s.t0 + cp[0], t1: s.t0 + cp[1], text: cp[2] }, T, s.capY || 1400);
+  for (const cp of s.caps) if (cp.text && T >= cp.t0 && T < cp.t1) drawCaption(cp, T, s.capY || 1400);
   post(Math.floor(T * FPS + .5));
 }
-window.FILM = { W, H, FPS, DUR, EVENTS, SCENES: SC.map(s => ({ n: s.n, t0: s.t0, d: s.d })), renderFrame };
+window.FILM = { W, H, FPS, DUR, EVENTS, VO, SCENES: SC.map(s => ({ n: s.n, t0: s.t0, d: s.d })), renderFrame };
