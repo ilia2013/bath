@@ -1,9 +1,13 @@
 """Озвучка реплик. Пишет voice/<id>.wav, voice/durations.json и voice/durations.js (тайминг для film.js).
 
-Движок по умолчанию — нейросетевые голоса Microsoft Edge (edge-tts, нужен интернет):
+Движок по умолчанию — Fish Audio (живые выразительные голоса, нужен API-ключ с fish.audio):
+    pip install numpy
+    FISH_API_KEY=... python3 voice.py       # все реплики
+    FISH_API_KEY=... python3 voice.py rule1 dawn   # только выбранные
+
+Другой движок — голоса Microsoft Edge (edge-tts, без ключа):
     pip install edge-tts numpy
-    python3 voice.py                        # все реплики
-    python3 voice.py rule1 dawn             # только выбранные
+    ENGINE=edge python3 voice.py
 
 Запасной движок — офлайн-голоса Piper (звучат «роботом», но лицензия CC0):
     pip install piper-tts numpy
@@ -25,7 +29,7 @@ VDIR = os.environ.get('PIPER_VOICES', os.path.join(HERE, 'voices'))
 OUT = os.path.join(HERE, 'voice'); os.makedirs(OUT, exist_ok=True)
 TEMPO = 1.1                        # больше — медленнее
 TAKES = int(os.environ.get('TAKES', '8'))
-ENGINE = os.environ.get('ENGINE', 'edge')
+ENGINE = os.environ.get('ENGINE', 'fish')
 
 # Edge: голос, скорость, высота. Рассказчик — ниже и медленнее, сосед — выше и бодрее.
 # Голоса задаются через VOICE_N (рассказчик) и VOICE_S (сосед). Самые живые по интонации: fr-FR-RemyMultilingualNeural, en-US-AndrewMultilingualNeural.
@@ -124,6 +128,44 @@ D = {
  'rule4': [('Правило четвёртое…', '-14%', '-4Hz', 1.0, .55), ('Не оборачивайся.', '-28%', '-11Hz', .8, 0)],
 }
 
+# ---------- Fish Audio (ENGINE=fish, по умолчанию) ----------
+# Ключ берётся из переменной FISH_API_KEY (в репозиторий не сохраняется).
+# Голоса — публичные голоса Fish Audio с обычными названиями (не копии известных людей):
+FISH = {
+    'dmitri': os.environ.get('FISH_VOICE_N', '48ec28a45588422b977a86460c11977f'),  # «Энергичный Рассказчик»
+    'denis': os.environ.get('FISH_VOICE_S', '7312c38557eb4fb384e3874e8e9cea67'),   # «Мужской Профессиональный»
+}
+FISH_MODEL = os.environ.get('FISH_MODEL', 's2.1-pro-free')   # бесплатная модель; платные: s1 и др.
+# Пометки эмоций в квадратных скобках модель понимает и не читает вслух.
+TAGS = {
+    'room2': '[tense]', 'door_n': '[whispering, creepy]', 'peep2': '[ominous]', 'win3': '[whispering]',
+    'hide1': '[whispering]', 'hide2': '[whispering]', 'hide3': '[whispering]', 'dawn': '[relieved]',
+    'relief1': '[relieved]', 'relief2': '[uncertain]', 'msg1': '[cheerful]', 'msg2': '[cheerful]',
+    'laugh': '[laughing]', 'msg4': '[ominous, slow]', 'rule4': '[whispering]',
+}
+
+def fish_synth(lid, who, text):
+    import json as _j, subprocess, time, urllib.request, urllib.error
+    body = ' '.join(p[0] for p in D[lid]) if lid in D else text
+    body = (TAGS.get(lid, '') + ' ' + body).strip()
+    req = _j.dumps({'text': body, 'reference_id': FISH[who], 'format': 'wav', 'normalize': True}).encode()
+    for attempt in range(8):
+        try:
+            r = urllib.request.Request('https://api.fish.audio/v1/tts', data=req, method='POST', headers={
+                'Authorization': 'Bearer ' + os.environ['FISH_API_KEY'], 'Content-Type': 'application/json', 'model': FISH_MODEL})
+            data = urllib.request.urlopen(r, timeout=180).read()
+            break
+        except urllib.error.HTTPError as e:
+            if e.code in (401, 402, 403): raise RuntimeError(f'Fish Audio {e.code}: ' + e.read().decode()[:300])
+            time.sleep(3 + attempt * 3)
+        except Exception:
+            time.sleep(3 + attempt * 3)
+    else:
+        raise RuntimeError('Fish Audio не отвечает: ' + lid)
+    raw = subprocess.run(['ffmpeg', '-loglevel', 'error', '-i', '-', '-f', 's16le', '-ac', '1', '-ar', '44100', '-'],
+                         input=data, capture_output=True, check=True).stdout
+    return np.frombuffer(raw, '<i2') / 32767, 44100
+
 def edge_directed(lid, who):
     voice = EDGE[who][0]; out = []; sr = 24000
     for text, rate, pitch, gain, pause in D[lid]:
@@ -191,15 +233,18 @@ def main(only=None):
             from piper import PiperVoice
             voices[who] = PiperVoice.load(os.path.join(VDIR, f'ru_RU-{who}-medium.onnx'))
         best = None
-        for _ in range(TAKES if (check and ENGINE == 'piper') else 1):
+        for _ in range(TAKES if (check and ENGINE in ('piper', 'fish')) else 1):
             if ENGINE == 'piper':
                 from piper import SynthesisConfig
                 chunks = list(voices[who].synthesize(text, syn_config=SynthesisConfig(length_scale=TEMPO)))
                 sr = chunks[0].sample_rate
                 a = trim(np.concatenate([c.audio_float_array for c in chunks]), sr)
             else:
-                a, sr = edge_directed(lid, who) if lid in D else edge_synth(text, who)
-                if lid not in D: a = squeeze(trim(a, sr), sr)
+                if ENGINE == 'fish':
+                    a, sr = fish_synth(lid, who, text); a = squeeze(trim(a, sr), sr, keep=0.45)
+                else:
+                    a, sr = edge_directed(lid, who) if lid in D else edge_synth(text, who)
+                if ENGINE != 'fish' and lid not in D: a = squeeze(trim(a, sr), sr)
             got = recognize(a, sr) if check else ''
             score = difflib.SequenceMatcher(None, norm(text), norm(got)).ratio() if check else 1.0
             if best is None or score > best[0]: best = (score, a, sr, got)
