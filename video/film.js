@@ -800,14 +800,19 @@ const SC = [
   { n: 'freeze', d: 2.8, f: sFreeze, cues: [] },
   { n: 'end', d: 4.8, f: sEnd, cues: [['rule4', .5, null]] },
 ];
-let acc = 0;
+// реплики не налезают друг на друга: если не помещается — сдвигаем следующую и удлиняем сцену
+let acc = 0, prevEnd = 0;
 for (const s of SC) {
-  s.t0 = acc; acc += s.d;
-  s.caps = s.cues.map(([id, a, text], i) => {
-    const vd = VD[id] || ((text || '').length * .07 + .5), t0 = s.t0 + a;
-    const lim = i + 1 < s.cues.length ? s.t0 + s.cues[i + 1][1] : s.t0 + s.d;
-    return { id, text, t0, vd, t1: Math.min(t0 + vd + .3, lim) };
+  s.t0 = acc;
+  s.caps = s.cues.map(([id, a, text]) => {
+    const vd = VD[id] || ((text || '').length * .07 + .5);
+    const t0 = Math.max(s.t0 + a, prevEnd + .2);
+    prevEnd = t0 + vd;
+    return { id, text, t0, vd };
   });
+  if (s.caps.length) s.d = Math.max(s.d, prevEnd - s.t0 + .3);
+  s.caps.forEach((cp, i) => { cp.t1 = Math.min(cp.t0 + cp.vd + .3, i + 1 < s.caps.length ? s.caps[i + 1].t0 : s.t0 + s.d); });
+  acc += s.d;
 }
 const DUR = acc;
 const at = (n, dt = 0) => +(SC.find(s => s.n === n).t0 + dt).toFixed(3);

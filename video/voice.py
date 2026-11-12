@@ -1,7 +1,13 @@
-"""Озвучка: синтез реплик открытыми голосами Piper (ru_RU-dmitri и ru_RU-denis, лицензия CC0).
-Пишет voice/<id>.wav, voice/durations.json и voice/durations.js (тайминг для film.js).
+"""Озвучка реплик. Пишет voice/<id>.wav, voice/durations.json и voice/durations.js (тайминг для film.js).
 
+Движок по умолчанию — нейросетевые голоса Microsoft Edge (edge-tts, нужен интернет):
+    pip install edge-tts numpy
+    python3 voice.py                        # все реплики
+    python3 voice.py rule1 dawn             # только выбранные
+
+Запасной движок — офлайн-голоса Piper (звучат «роботом», но лицензия CC0):
     pip install piper-tts numpy
+    ENGINE=piper PIPER_VOICES=/папка/с/моделями python3 voice.py
     PIPER_VOICES=/папка/с/моделями python3 voice.py            # все реплики
     PIPER_VOICES=... python3 voice.py rule1 dawn                # только выбранные
 
@@ -13,13 +19,39 @@ WHISPER_MODEL (папка с моделью), для каждой реплики
 """
 import difflib, json, os, re, sys, wave
 import numpy as np
-from piper import PiperVoice, SynthesisConfig
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 VDIR = os.environ.get('PIPER_VOICES', os.path.join(HERE, 'voices'))
 OUT = os.path.join(HERE, 'voice'); os.makedirs(OUT, exist_ok=True)
 TEMPO = 1.1                        # больше — медленнее
 TAKES = int(os.environ.get('TAKES', '8'))
+ENGINE = os.environ.get('ENGINE', 'edge')
+
+# Edge: голос, скорость, высота. Рассказчик — ниже и медленнее, сосед — выше и бодрее.
+EDGE = {'dmitri': ('ru-RU-DmitryNeural', '-8%', '-6Hz'), 'denis': ('ru-RU-DmitryNeural', '+6%', '+14Hz')}
+
+def edge_synth(text, who):
+    import asyncio, subprocess, tempfile, edge_tts
+    voice, rate, pitch = EDGE[who]
+    async def run():
+        buf = b''
+        async for ch in edge_tts.Communicate(text, voice, rate=rate, pitch=pitch, proxy=os.environ.get('HTTPS_PROXY')).stream():
+            if ch['type'] == 'audio': buf += ch['data']
+        return buf
+    import time
+    for attempt in range(12):
+        try:
+            mp3 = asyncio.run(run())
+            if mp3: break
+        except edge_tts.exceptions.NoAudioReceived:
+            pass
+        time.sleep(1.5 + attempt)
+    else:
+        raise RuntimeError('edge-tts: нет ответа для: ' + text)
+    with tempfile.NamedTemporaryFile(suffix='.mp3') as f:
+        f.write(mp3); f.flush()
+        raw = subprocess.run(['ffmpeg', '-loglevel', 'error', '-i', f.name, '-f', 's16le', '-ac', '1', '-ar', '24000', '-'], capture_output=True, check=True).stdout
+    return np.frombuffer(raw, '<i2') / 32767, 24000
 
 N, S = 'dmitri', 'denis'           # рассказчик и сосед
 LINES = [
@@ -58,6 +90,19 @@ def trim(a, sr, thr=0.012, pad=0.03):
     if not len(idx): return a
     return a[max(0, idx[0] - int(pad * sr)): idx[-1] + int(pad * sr)]
 
+def squeeze(a, sr, thr=0.015, keep=0.28):
+    """Укорачивает паузы внутри реплики до keep секунд."""
+    w = int(0.02 * sr); e = np.convolve(np.abs(a), np.ones(w) / w, 'same') > thr
+    out, i, n = [], 0, len(a)
+    while i < n:
+        j = i
+        while j < n and e[j] == e[i]: j += 1
+        seg = a[i:j]
+        if not e[i] and len(seg) > keep * sr:
+            h = int(keep * sr / 2); seg = np.concatenate([seg[:h], seg[-h:]])
+        out.append(seg); i = j
+    return np.concatenate(out)
+
 def norm(s):
     """Грубая нормализация для сравнения с распознанным текстом (без цифр, пунктуации и безударных о/а, е/и)."""
     s = s.lower().replace('ё', 'е')
@@ -95,12 +140,18 @@ def main(only=None):
     if os.path.exists(dpath): durs = json.load(open(dpath, encoding='utf-8'))
     for lid, who, text in LINES:
         if only and lid not in only: continue
-        if who not in voices: voices[who] = PiperVoice.load(os.path.join(VDIR, f'ru_RU-{who}-medium.onnx'))
+        if ENGINE == 'piper' and who not in voices:
+            from piper import PiperVoice
+            voices[who] = PiperVoice.load(os.path.join(VDIR, f'ru_RU-{who}-medium.onnx'))
         best = None
-        for _ in range(TAKES if check else 1):
-            chunks = list(voices[who].synthesize(text, syn_config=SynthesisConfig(length_scale=TEMPO)))
-            sr = chunks[0].sample_rate
-            a = trim(np.concatenate([c.audio_float_array for c in chunks]), sr)
+        for _ in range(TAKES if (check and ENGINE == 'piper') else 1):
+            if ENGINE == 'piper':
+                from piper import SynthesisConfig
+                chunks = list(voices[who].synthesize(text, syn_config=SynthesisConfig(length_scale=TEMPO)))
+                sr = chunks[0].sample_rate
+                a = trim(np.concatenate([c.audio_float_array for c in chunks]), sr)
+            else:
+                a, sr = edge_synth(text, who); a = squeeze(trim(a, sr), sr)
             got = recognize(a, sr) if check else ''
             score = difflib.SequenceMatcher(None, norm(text), norm(got)).ratio() if check else 1.0
             if best is None or score > best[0]: best = (score, a, sr, got)
